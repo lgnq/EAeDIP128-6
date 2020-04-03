@@ -72,6 +72,14 @@ LCD_DRAW_STRAIGHT_LINE = 'D'
 LCD_CONTINUE_STRAIGHT_LINE = 'W'
 LCD_DRAW_RECTANGLE = 'R'
 
+#DRAW RECTANGULAR AREA
+LCD_DRAW_RECTANGULAR_CMD = 'R'
+
+LCD_AREA_WITH_FILL_PATTERN = 'M'
+LCD_DRAW_BOX = 'O'
+LCD_DRAW_FRAME = 'R'
+LCD_DRAW_FRAME_BOX = 'T'
+
 class lcd(object):
     #initializes objects and lcd
     def __init__(self, brightness, port=1):
@@ -188,15 +196,12 @@ class lcd(object):
         
         self.send_data(dat, len(dat))
 
-    def lcd_fill_area_pattern(self, x1, y1, x2, y2, n1):
-        dat = [ESC, ord('R'), ord('M')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        dat.append(n1)
-        
-        self.send_data(dat, len(dat))
+    def lcd_fill_area_pattern(self, x1, y1, x2, y2, pattern):
+        if pattern > 15:
+            print("wrong pattern value[0 - 15]")
+            return        
+
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_AREA_WITH_FILL_PATTERN, x1, y1, x2, y2, pattern)
 
     def lcd_draw_box(self, x1, y1, x2, y2, n1):
         dat = [ESC, ord('R'), ord('O')]
@@ -267,3 +272,8 @@ if __name__ == '__main__':
 
     l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_ON)
     l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_VERSION)
+
+    l.lcd_fill_area_pattern(10, 10, 50, 40, 15)
+
+    # l.lcd_clear()
+    # l.lcd_draw_line(0, 67, 127, 67)
