@@ -272,17 +272,18 @@ class lcd(object):
         self.lcd_write_read(dat)
 
     def lcd_set_contrast(self, contrast):
-        dat = [ESC, ord('D'), ord('K')]
         if (contrast >= 0) and (contrast <= 40):
-            dat.append(contrast)
+            self.lcd_write_cmd(LCD_DISPLAY_CMD, LCD_SET_DISPLAY_CONTRAST, contrast)
         else:
             print("wrong value of contrast[0 - 40]")
             return
 
-        self.lcd_write_read(dat)
-
     def lcd_set_brightness(self, brightness):
-        self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_BRIGHTNESS, brightness)
+        if (brightness >= 0) and (brightness <= 100):
+            self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_BRIGHTNESS, brightness)
+        else:
+            print("wrong value of brightness[0 - 100]")
+            return
 
     def lcd_backlight_onoff(self, onoff):
         self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_ONOFF, onoff)
