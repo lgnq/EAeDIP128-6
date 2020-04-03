@@ -3,7 +3,7 @@ from time import *
 
 # LCD Address
 # sudo i2cdetect -y 1
-ADDRESS = 0x6F
+I2C_ADDRESS = 0x6F
 
 ESC = 0x1B
 DC1 = 0x11
@@ -20,8 +20,6 @@ CR = 0x0D
 LEFT = 0
 RIGHT = 1
 CENTER = 2
-
-LCD_CLEAR_DISPLAY = [0x1B, 0x44, 0x4C, 0x1B, 0x47, 0x44, 0x00, 0x00, 0x7F, 0x3F]
 
 # terminal commands
 LCD_TERMINAL_CMD = 'T'
@@ -69,13 +67,13 @@ LCD_ILLUMINATION_ONOFF = 'L'
 class lcd(object):
     #initializes objects and lcd
     def __init__(self, brightness, port=1):
-        self.addr = ADDRESS
+        self.addr = I2C_ADDRESS
         self.bus = smbus.SMBus(port)
 
         self.lcd_backlight_onoff(OFF)
         self.lcd_set_brightness(brightness)
         self.lcd_set_contrast(20)
-        self.lcd_set_orientation(90)
+        self.lcd_set_orientation(0)
         self.lcd_backlight_onoff(ON)
 
         sleep(0.2)   
