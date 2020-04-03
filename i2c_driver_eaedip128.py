@@ -312,29 +312,6 @@ if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
 
     l = lcd(2, 1)#设置背光开关，port=1
-    # l.send_data(LCD_CLEAR_DISPLAY, len(LCD_CLEAR_DISPLAY))
-    # l.lcd_clear()
 
-    # l.lcd_draw_line(1, 1, 50, 60)
-    l.lcd_set_font(3)
-    l.lcd_write_read(LCD_CLEAR_DISPLAY)
-    # l.lcd_display_string('hello raspberry pi!', 10, 40, CENTER)
-    # l.lcd_fill_area_pattern(5, 5, 20, 40, 2)
-    # sleep(1)
-    # l.lcd_draw_line(10, 10, 20, 30)
-    # sleep(1)
-    # l.lcd_draw_rectangle(2, 2, 20, 30)
-    # sleep(1)
-    # l.lcd_draw_point(30, 60)
-    # sleep(1)
-    # l.lcd_draw_point(10, 20)
-    # sleep(1)
-    # l.lcd_draw_line(10, 10, 20, 30)
-
-    # l.lcd_terminal_onoff(ON)
-    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
-    # l.lcd_version()
-    l.lcd_project()
-    # l.lcd_information()
-
-    # l.lcd_clear()
+    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_ON)
+    l.lcd_version()
