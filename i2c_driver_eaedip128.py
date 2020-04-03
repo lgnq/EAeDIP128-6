@@ -91,17 +91,6 @@ class lcd(object):
 
         self.bus.write_byte(self.addr, bcc)
 
-    def lcd_write_read(self, dat):
-        while True:
-            self.send_data(dat, len(dat))
-
-            val = self.bus.read_byte(self.addr)
-            if val == ACK:
-                break
-            elif val == NAK:
-                print("NAK")
-                continue
-
     def lcd_write_cmd(self, cmd1, cmd2, *codes):
         n = 0
 
