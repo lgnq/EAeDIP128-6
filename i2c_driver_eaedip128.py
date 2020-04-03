@@ -75,6 +75,10 @@ LCD_DRAW_RECTANGLE = 'R'
 #DRAW RECTANGULAR AREA
 LCD_DRAW_RECTANGULAR_CMD = 'R'
 
+LCD_DELETE_AREA = 'L'
+LCD_INVERT_AREA = 'I'
+LCD_FILL_AREA = 'S'
+
 LCD_AREA_WITH_FILL_PATTERN = 'M'
 LCD_DRAW_BOX = 'O'
 LCD_DRAW_FRAME = 'R'
@@ -138,6 +142,8 @@ class lcd(object):
 
     # put string function
     def lcd_display_string(self, str, x, y, align):
+        n = 0
+
         dat = [ESC, ord('Z')]
         
         if align == LEFT:
@@ -154,9 +160,24 @@ class lcd(object):
             dat.append(ord(s[i]))
         dat.append(NUL)
                     
-        self.send_data(dat, len(dat))
+        while True:
+            n = n + 1
+            if n == 10:
+                print("lcd write cmd failed after try 10 times")
+                break
 
-    # clear lcd and set to home
+            self.send_data(dat, len(dat))
+
+            val = self.bus.read_byte(self.addr)
+            if val == ACK:
+                break
+            elif val == NAK:
+                print("NAK")
+                continue
+
+    # clear lcd
+    # If the graphics screen is deleted with ‘ESC DL’, 
+    # for example, that does not affect the contents of the terminal window
     def lcd_clear(self):
         self.lcd_write_cmd(LCD_DISPLAY_CMD, LCD_DELETE_DISPLAY)
 
@@ -170,31 +191,13 @@ class lcd(object):
         self.lcd_write_cmd(LCD_DRAW_CMD, LCD_DRAW_RECTANGLE, x1, y1, x2, y2)
 
     def lcd_delete_area(self, x1, y1, x2, y2):
-        dat = [ESC, ord('R'), ord('L')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_DELETE_AREA, x1, y1, x2, y2)
 
     def lcd_invert_area(self, x1, y1, x2, y2):
-        dat = [ESC, ord('R'), ord('I')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_INVERT_AREA, x1, y1, x2, y2)
 
     def lcd_fill_area(self, x1, y1, x2, y2):
-        dat = [ESC, ord('R'), ord('S')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_FILL_AREA, x1, y1, x2, y2)
 
     def lcd_fill_area_pattern(self, x1, y1, x2, y2, pattern):
         if pattern > 15:
@@ -203,35 +206,26 @@ class lcd(object):
 
         self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_AREA_WITH_FILL_PATTERN, x1, y1, x2, y2, pattern)
 
-    def lcd_draw_box(self, x1, y1, x2, y2, n1):
-        dat = [ESC, ord('R'), ord('O')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        dat.append(n1)
-        
-        self.send_data(dat, len(dat))
+    def lcd_draw_box(self, x1, y1, x2, y2, pattern):
+        if pattern > 15:
+            print("wrong pattern value[0 - 15]")
+            return      
 
-    def lcd_draw_frame(self, x1, y1, x2, y2, n1):
-        dat = [ESC, ord('R'), ord('R')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        dat.append(n1)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_DRAW_BOX, x1, y1, x2, y2, pattern)
 
-    def lcd_draw_frame_box(self, x1, y1, x2, y2, n1):
-        dat = [ESC, ord('R'), ord('T')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        dat.append(n1)
-        
-        self.send_data(dat, len(dat))
+    def lcd_draw_frame(self, x1, y1, x2, y2, pattern):
+        if pattern > 15:
+            print("wrong pattern value[0 - 15]")
+            return      
+
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_DRAW_FRAME, x1, y1, x2, y2, pattern)
+
+    def lcd_draw_frame_box(self, x1, y1, x2, y2, pattern):
+        if pattern > 15:
+            print("wrong pattern value[0 - 15]")
+            return      
+
+        self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_DRAW_FRAME_BOX, x1, y1, x2, y2, pattern)
 
     def lcd_set_orientation(self, orientation):
         if orientation == 0:
@@ -270,10 +264,13 @@ if __name__ == '__main__':
 
     l = lcd(2, 1)#设置背光开关，port=1
 
-    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_ON)
+    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
     l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_VERSION)
 
+    l.lcd_clear()
+    l.lcd_draw_line(0, 67, 127, 67)
     l.lcd_fill_area_pattern(10, 10, 50, 40, 15)
-
-    # l.lcd_clear()
-    # l.lcd_draw_line(0, 67, 127, 67)
+    l.lcd_draw_box(5, 5, 12, 15, 2)
+    l.lcd_draw_frame(60, 20, 80, 40, 3)
+    l.lcd_draw_frame_box(100, 20, 120, 40, 5)
+    l.lcd_display_string('HELLO RASPBERRY PI', 40, 50, CENTER)
