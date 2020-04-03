@@ -75,7 +75,7 @@ class lcd(object):
         self.lcd_backlight_onoff(OFF)
         self.lcd_set_brightness(brightness)
         self.lcd_set_contrast(20)
-        self.lcd_set_orientation(0)
+        self.lcd_set_orientation(90)
         self.lcd_backlight_onoff(ON)
 
         sleep(0.2)   
@@ -255,21 +255,19 @@ class lcd(object):
         self.send_data(dat, len(dat))
 
     def lcd_set_orientation(self, orientation):
-        dat = [ESC, ord('D'), ord('O')]
-
         if orientation == 0:
-            dat.append(0)
+            ori = 0
         elif orientation == 90:
-            dat.append(1)
+            ori = 1
         elif orientation == 180:
-            dat.append(2)
+            ori = 2
         elif orientation == 270:
-            dat.append(3)            
+            ori = 3
         else:
             print("wrong value of orientation[0, 90, 180, 270]")
             return
 
-        self.lcd_write_read(dat)
+        self.lcd_write_cmd(LCD_DISPLAY_CMD, LCD_SET_DISPLAY_ORIENTATION, ori)
 
     def lcd_set_contrast(self, contrast):
         if (contrast >= 0) and (contrast <= 40):
@@ -294,4 +292,4 @@ if __name__ == '__main__':
     l = lcd(2, 1)#设置背光开关，port=1
 
     l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_ON)
-    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_INFORMATION)
+    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_VERSION)
