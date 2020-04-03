@@ -60,14 +60,20 @@ LCD_TEXT_ANGLE = 'W'
 LCD_TEXT_LINK_MODE = 'V'
 LCD_TEXT_FLASHING_ATTRIBUTE = 'B'
 
+#LCD BACKLIGHT
+LCD_BACKLIGHT_CMD = 'Y'
+
+LCD_ILLUMINATION_BRIGHTNESS = 'H'
+LCD_ILLUMINATION_ONOFF = 'L'
+
 class lcd(object):
     #initializes objects and lcd
-    def __init__(self, lcd_bl, port=1):
+    def __init__(self, brightness, port=1):
         self.addr = ADDRESS
         self.bus = smbus.SMBus(port)
 
         self.lcd_backlight_onoff(OFF)
-        self.lcd_set_brightness(lcd_bl)
+        self.lcd_set_brightness(brightness)
         self.lcd_set_contrast(20)
         self.lcd_set_orientation(0)
         self.lcd_backlight_onoff(ON)
@@ -98,9 +104,12 @@ class lcd(object):
                 print("NAK")
                 continue
 
-    def lcd_write_cmd(self, cmd1, cmd2):
+    def lcd_write_cmd(self, cmd1, cmd2, *codes):
         n = 0
+
         dat = [ESC, ord(cmd1), ord(cmd2)]
+        for code in codes:
+            dat.append(code)
 
         while True:
             n = n + 1
@@ -115,7 +124,7 @@ class lcd(object):
                 break
             elif val == NAK:
                 print("NAK")
-                continue            
+                continue
 
     def lcd_set_font(self, font = 0):
         if font > 15:
@@ -273,40 +282,10 @@ class lcd(object):
         self.lcd_write_read(dat)
 
     def lcd_set_brightness(self, brightness):
-        dat = [ESC, ord('Y'), ord('H')]
-        dat.append(brightness)
-
-        self.lcd_write_read(dat)
+        self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_BRIGHTNESS, brightness)
 
     def lcd_backlight_onoff(self, onoff):
-        dat = [ESC, ord('Y'), ord('L')]
-        dat.append(onoff)
-
-        self.lcd_write_read(dat)
-
-    def lcd_terminal_onoff(self, onoff):
-        dat = [ESC, ord('T')]
-        if onoff == ON:
-            dat.append(ord('E'))
-        elif onoff == OFF:
-            dat.append(ord('A'))
-
-        self.lcd_write_read(dat)
-
-    def lcd_version(self):
-        dat = [ESC, ord('T'), ord('V')]
-
-        self.lcd_write_read(dat)
-
-    def lcd_project(self):
-        dat = [ESC, ord('T'), ord('J')]
-
-        self.lcd_write_read(dat)
-
-    def lcd_information(self):
-        dat = [ESC, ord('T'), ord('I')]
-
-        self.lcd_write_read(dat)
+        self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_ONOFF, onoff)
 
 if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
@@ -314,4 +293,4 @@ if __name__ == '__main__':
     l = lcd(2, 1)#设置背光开关，port=1
 
     l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_ON)
-    l.lcd_version()
+    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_INFORMATION)
