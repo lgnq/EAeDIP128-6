@@ -64,6 +64,14 @@ LCD_BACKLIGHT_CMD = 'Y'
 LCD_ILLUMINATION_BRIGHTNESS = 'H'
 LCD_ILLUMINATION_ONOFF = 'L'
 
+#DRAW LINES and POINTS
+LCD_DRAW_CMD = 'G'
+
+LCD_DRAW_POINT = 'P'
+LCD_DRAW_STRAIGHT_LINE = 'D'
+LCD_CONTINUE_STRAIGHT_LINE = 'W'
+LCD_DRAW_RECTANGLE = 'R'
+
 class lcd(object):
     #initializes objects and lcd
     def __init__(self, brightness, port=1):
@@ -118,8 +126,7 @@ class lcd(object):
             print("wrong font value[0 - 15]")
             return
 
-        dat = [ESC, ord('Z'), ord('F'), font]
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_TEXT_CMD, LCD_SET_FONT, font)
 
     # put string function
     def lcd_display_string(self, str, x, y, align):
@@ -143,36 +150,16 @@ class lcd(object):
 
     # clear lcd and set to home
     def lcd_clear(self):
-        dat = [ESC, ord('D'), ord('L')]
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DISPLAY_CMD, LCD_DELETE_DISPLAY)
 
     def lcd_draw_point(self, x, y):
-        # dat = [ESC, ord('D'), ord('L'), ESC, ord('G'), ord('D')]
-        dat = [ESC, ord('G'), ord('P')]
-        dat.append(x)
-        dat.append(y)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_CMD, LCD_DRAW_POINT, x, y)
 
     def lcd_draw_line(self, x1, y1, x2, y2):
-        # dat = [ESC, ord('D'), ord('L'), ESC, ord('G'), ord('D')]
-        dat = [ESC, ord('G'), ord('D')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_CMD, LCD_DRAW_STRAIGHT_LINE, x1, y1, x2, y2)
 
     def lcd_draw_rectangle(self, x1, y1, x2, y2):
-        # dat = [ESC, ord('D'), ord('L'), ESC, ord('G'), ord('D')]
-        dat = [ESC, ord('G'), ord('R')]
-        dat.append(x1)
-        dat.append(y1)
-        dat.append(x2)
-        dat.append(y2)
-        
-        self.send_data(dat, len(dat))
+        self.lcd_write_cmd(LCD_DRAW_CMD, LCD_DRAW_RECTANGLE, x1, y1, x2, y2)
 
     def lcd_delete_area(self, x1, y1, x2, y2):
         dat = [ESC, ord('R'), ord('L')]
