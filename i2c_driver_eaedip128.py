@@ -5,6 +5,12 @@ from time import *
 # sudo i2cdetect -y 1
 I2C_ADDRESS = 0x6F
 
+# LCD size
+XPIXEL = 128
+YPIXEL = 64
+XMAX = XPIXEL - 1
+YMAX = YPIXEL - 1
+
 ESC = 0x1B
 DC1 = 0x11
 ACK = 0x06
@@ -20,6 +26,16 @@ CR = 0x0D
 LEFT = 0
 RIGHT = 1
 CENTER = 2
+
+# fonts
+FONT4_6 = 1
+FONT6_8 = 2
+FONT7_12 = 3
+GENEVA10 = 4
+CHICAGO14 = 5
+SWISS30B = 6
+BIGZIF50 = 7
+BIGZIF100 = 8
 
 # terminal commands
 LCD_TERMINAL_CMD = 'T'
@@ -67,6 +83,7 @@ LCD_ILLUMINATION_ONOFF = 'L'
 #DRAW LINES and POINTS
 LCD_DRAW_CMD = 'G'
 
+LCD_POINT_SIZE = 'Z'
 LCD_DRAW_POINT = 'P'
 LCD_DRAW_STRAIGHT_LINE = 'D'
 LCD_CONTINUE_STRAIGHT_LINE = 'W'
@@ -84,6 +101,17 @@ LCD_DRAW_BOX = 'O'
 LCD_DRAW_FRAME = 'R'
 LCD_DRAW_FRAME_BOX = 'T'
 
+#BARGRAPH
+LCD_BARGRAPH_CMD = 'B'
+LCD_BARGRAPH_R = 'R'
+LCD_BARGRAPH_L = 'L'
+LCD_BARGRAPH_O = 'O'
+LCD_BARGRAPH_U = 'U'
+LCD_DELETE_BARGRAPH = 'D'
+LCD_UPDATE_BARGRAPH = 'A'
+LCD_REDRAW_BARGRAPH = 'Z'
+LCD_SEND_BARGRAPH_VALUE = 'S'
+
 class lcd(object):
     #initializes objects and lcd
     def __init__(self, brightness, port=1):
@@ -94,7 +122,7 @@ class lcd(object):
         self.lcd_set_brightness(brightness)
         self.lcd_set_contrast(20)
         self.lcd_set_orientation(0)
-        self.lcd_backlight_onoff(ON)
+        self.lcd_backlight_onoff(OFF)
 
         sleep(0.2)   
 
@@ -139,6 +167,17 @@ class lcd(object):
             return
 
         self.lcd_write_cmd(LCD_TEXT_CMD, LCD_SET_FONT, font)
+
+    def lcd_set_point_size(self, n1, n2):
+        if n1 < 1 or n1 > 15:
+            print("wrong n1 value[0 - 15]")
+            return
+
+        if n2 < 1 or n2 > 15:
+            print("wrong n2 value[0 - 15]")
+            return
+
+        self.lcd_write_cmd(LCD_DRAW_CMD, LCD_POINT_SIZE, n1, n2)
 
     # put string function
     def lcd_display_string(self, str, x, y, align):
@@ -227,6 +266,16 @@ class lcd(object):
 
         self.lcd_write_cmd(LCD_DRAW_RECTANGLE, LCD_DRAW_FRAME_BOX, x1, y1, x2, y2, pattern)
 
+    def lcd_draw_bargraph_r(self, n1, x1, y1, x2, y2, aw, ew, tp, pat):
+        if n1 < 1 or n1 > 32:
+            print("wrong n1 value[1 - 32]")
+            return      
+
+        self.lcd_write_cmd(LCD_BARGRAPH_CMD, LCD_BARGRAPH_R, n1, x1, y1, x2, y2, aw, ew, tp, pat)
+
+    def lcd_update_bargraph(self, old_val, new_val):
+        self.lcd_write_cmd(LCD_BARGRAPH_CMD, LCD_UPDATE_BARGRAPH, old_val, new_val)
+
     def lcd_set_orientation(self, orientation):
         if orientation == 0:
             ori = 0
@@ -259,18 +308,24 @@ class lcd(object):
     def lcd_backlight_onoff(self, onoff):
         self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_ONOFF, onoff)
 
+    def demo_screen(self):
+        self.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
+        self.lcd_clear()
+
+        self.lcd_set_font(SWISS30B)
+        self.lcd_display_string('Demo', 60, 0, CENTER)
+        self.lcd_set_point_size(2, 2)
+        self.lcd_draw_line(0, 30, XMAX, 30)
+
+        self.lcd_set_font(CHICAGO14)
+        self.lcd_display_string('Brightness', 5, 35, CENTER)
+
+        self.lcd_draw_bargraph_r(1, 0, 50, XMAX, 50+10, 5, 100, 1, 1)
+        self.lcd_update_bargraph(1, 80)        
+
 if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
 
     l = lcd(2, 1)#设置背光开关，port=1
 
-    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
-    l.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_OUTPUT_VERSION)
-
-    l.lcd_clear()
-    l.lcd_draw_line(0, 67, 127, 67)
-    l.lcd_fill_area_pattern(10, 10, 50, 40, 15)
-    l.lcd_draw_box(5, 5, 12, 15, 2)
-    l.lcd_draw_frame(60, 20, 80, 40, 3)
-    l.lcd_draw_frame_box(100, 20, 120, 40, 5)
-    l.lcd_display_string('HELLO RASPBERRY PI', 40, 50, CENTER)
+    l.demo_screen()
