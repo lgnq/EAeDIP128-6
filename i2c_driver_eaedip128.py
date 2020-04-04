@@ -1,5 +1,6 @@
 import smbus
 from time import *
+import time
 
 # LCD Address
 # sudo i2cdetect -y 1
@@ -122,7 +123,7 @@ class lcd(object):
         self.lcd_set_brightness(brightness)
         self.lcd_set_contrast(20)
         self.lcd_set_orientation(0)
-        self.lcd_backlight_onoff(OFF)
+        self.lcd_backlight_onoff(ON)
 
         sleep(0.2)   
 
@@ -323,9 +324,26 @@ class lcd(object):
         self.lcd_draw_bargraph_r(1, 0, 50, XMAX, 50+10, 5, 100, 1, 1)
         self.lcd_update_bargraph(1, 80)        
 
+    def clock(self):
+        self.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
+        self.lcd_clear()
+
+        self.lcd_set_font(SWISS30B)
+        self.lcd_display_string('CLOCK', 60, 0, CENTER)
+        self.lcd_set_point_size(2, 2)
+        self.lcd_draw_line(0, 30, XMAX, 30)
+        self.lcd_set_font(CHICAGO14)
+        
+        while True:
+            self.lcd_delete_area(0, 35, XMAX, YMAX)
+            localtime = time.localtime(time.time())
+            self.lcd_display_string(str(localtime.tm_year) + '-' + str(localtime.tm_mon) + '-' + str(localtime.tm_mday) + ' ' + str(localtime.tm_hour) + ':' + str(localtime.tm_min) + ':' + str(localtime.tm_sec), 0, 40, CENTER)
+            sleep(0.5)
+
 if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
 
     l = lcd(2, 1)#设置背光开关，port=1
 
-    l.demo_screen()
+    # l.demo_screen()
+    l.clock()
