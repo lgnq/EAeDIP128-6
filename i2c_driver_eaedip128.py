@@ -113,6 +113,12 @@ LCD_UPDATE_BARGRAPH = 'A'
 LCD_REDRAW_BARGRAPH = 'Z'
 LCD_SEND_BARGRAPH_VALUE = 'S'
 
+#BITMAT
+LCD_BITMAP_CMD = 'U'
+
+LCD_LOAD_INTERNAL_IMAGE = 'I'
+LCD_LOAD_IMAGE = 'L'
+
 class lcd(object):
     #initializes objects and lcd
     def __init__(self, brightness, port=1):
@@ -309,6 +315,35 @@ class lcd(object):
     def lcd_backlight_onoff(self, onoff):
         self.lcd_write_cmd(LCD_BACKLIGHT_CMD, LCD_ILLUMINATION_ONOFF, onoff)
 
+    def lcd_load_interal_image(self, x, y, n):
+        if n < 0 or n > 255:
+            print("internal image is not existed [0 - 255]")
+        self.lcd_write_cmd(LCD_BITMAP_CMD, LCD_LOAD_INTERNAL_IMAGE, n)
+
+    def lcd_load_image(self, x, y, blh):
+        n = 0
+
+        dat = [ESC, ord(LCD_BITMAP_CMD), ord(LCD_LOAD_INTERNAL_IMAGE)]
+        
+        dat.append(x)
+        dat.append(y)
+        dat.append(blh)
+                    
+        while True:
+            n = n + 1
+            if n == 10:
+                print("lcd write cmd failed after try 10 times")
+                break
+
+            self.send_data(dat, len(dat))
+
+            val = self.bus.read_byte(self.addr)
+            if val == ACK:
+                break
+            elif val == NAK:
+                print("NAK")
+                continue        
+
     def demo_screen(self):
         self.lcd_write_cmd(LCD_TERMINAL_CMD, LCD_TERMINAL_OFF)
         self.lcd_clear()
@@ -339,6 +374,11 @@ class lcd(object):
             localtime = time.localtime(time.time())
             self.lcd_display_string(str(localtime.tm_year) + '-' + str(localtime.tm_mon) + '-' + str(localtime.tm_mday) + ' ' + str(localtime.tm_hour) + ':' + str(localtime.tm_min) + ':' + str(localtime.tm_sec), 0, 40, CENTER)
             sleep(0.5)
+
+    def draw_picture(self):
+        for row in range(0, YPIXEL):
+            for col in range (0, XPIXEL):
+                self.lcd_draw_point(col, row)
 
 if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
