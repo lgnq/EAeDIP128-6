@@ -416,7 +416,7 @@ class lcd(object):
             self.lcd_display_string(str(localtime.tm_year) + '-' + str(localtime.tm_mon) + '-' + str(localtime.tm_mday) + ' ' + str(localtime.tm_hour) + ':' + str(localtime.tm_min) + ':' + str(localtime.tm_sec), 0, 40, CENTER)
             sleep(0.5)
 
-    def draw_picture(self, picture):
+    def draw_picture(self, picture, threshold):
         img = Image.open(picture)
         width = img.size[0]
         height = img.size[1]
@@ -425,11 +425,11 @@ class lcd(object):
         Img = img.convert('L')
         
         # 自定义灰度界限，大于这个值为黑色，小于这个值为白色
-        threshold = 60
+        t = threshold
         
         table = []
         for i in range(256):
-            if i < threshold:
+            if i < t:
                 table.append(0)
             else:
                 table.append(1)
@@ -438,7 +438,7 @@ class lcd(object):
         photo = Img.point(table, '1')
         for col in range(width):
             for row in range(height):
-                if photo.getpixel((col, row)) == 1:
+                if photo.getpixel((col, row)) == 0:
                     self.lcd_draw_point(col, row)
 
 if __name__ == '__main__':
@@ -451,4 +451,4 @@ if __name__ == '__main__':
 
     l.lcd_clear()
     # l.lcd_load_image(0, 0, test)
-    l.draw_picture('rasp.jpg')
+    l.draw_picture('boy.jpg', 110)
