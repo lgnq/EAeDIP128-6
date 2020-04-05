@@ -1,6 +1,7 @@
 import smbus
 from time import *
 import time
+from PIL import Image
 
 # LCD Address
 # sudo i2cdetect -y 1
@@ -415,10 +416,30 @@ class lcd(object):
             self.lcd_display_string(str(localtime.tm_year) + '-' + str(localtime.tm_mon) + '-' + str(localtime.tm_mday) + ' ' + str(localtime.tm_hour) + ':' + str(localtime.tm_min) + ':' + str(localtime.tm_sec), 0, 40, CENTER)
             sleep(0.5)
 
-    def draw_picture(self):
-        for row in range(0, YPIXEL):
-            for col in range (0, XPIXEL):
-                self.lcd_draw_point(col, row)
+    def draw_picture(self, picture):
+        img = Image.open(picture)
+        width = img.size[0]
+        height = img.size[1]
+        
+        # 模式L”为灰色图像，它的每个像素用8个bit表示，0表示黑，255表示白，其他数字表示不同的灰度。
+        Img = img.convert('L')
+        
+        # 自定义灰度界限，大于这个值为黑色，小于这个值为白色
+        threshold = 60
+        
+        table = []
+        for i in range(256):
+            if i < threshold:
+                table.append(0)
+            else:
+                table.append(1)
+        
+        # 图片二值化
+        photo = Img.point(table, '1')
+        for col in range(width):
+            for row in range(height):
+                if photo.getpixel((col, row)) == 1:
+                    self.lcd_draw_point(col, row)
 
 if __name__ == '__main__':
     print("this is RPI I2C driver for EAeDIP128-6")
@@ -429,4 +450,5 @@ if __name__ == '__main__':
     # l.clock()
 
     l.lcd_clear()
-    l.lcd_load_image(0, 0, test)
+    # l.lcd_load_image(0, 0, test)
+    l.draw_picture('rasp.jpg')
